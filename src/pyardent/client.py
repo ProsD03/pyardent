@@ -3,6 +3,7 @@ import logging
 import httpx
 from .modules import MetaModule, CommodityModule, SystemModule
 from .exceptions import PyArdentError, ResourceNotFoundError, CommodityNotFoundError, SystemNotFoundError
+from .modules.station import StationModule
 
 logger = logging.getLogger("pyardent.client")
 
@@ -40,13 +41,16 @@ class ArdentClient:
     meta: MetaModule
     commodity: CommodityModule
     system: SystemModule
+    station: StationModule
 
     def __init__(self, base_url: str | None = None):
         self._base_url = base_url or self.DEFAULT_BASE_URL
 
         self._client = httpx.Client(base_url=self._base_url, event_hooks={"response": [_handle_response_errors, ]})
+
         self.meta = MetaModule(self._client)
         self.commodity = CommodityModule(self._client)
         self.system = SystemModule(self._client)
+        self.station = StationModule(self._client)
 
         logger.info(f"Initialized ArdentClient pointing to {self._base_url}")
