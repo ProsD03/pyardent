@@ -14,3 +14,7 @@ class CommodityNotFoundError(PyArdentError):
 class SystemNotFoundError(PyArdentError):
     def __init__(self, url: str):
         super().__init__(f"System does not exist. Endpoint: {url}")
+
+class ServiceNotFoundError(PyArdentError):
+    def __init__(self, url: str):
+        super().__init__(f"Service does not exist. Endpoint: {url}")

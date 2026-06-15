@@ -2,7 +2,8 @@ import logging
 
 import httpx
 from .modules import MetaModule, CommodityModule, SystemModule
-from .exceptions import PyArdentError, ResourceNotFoundError, CommodityNotFoundError, SystemNotFoundError
+from .exceptions import PyArdentError, ResourceNotFoundError, CommodityNotFoundError, SystemNotFoundError, \
+    ServiceNotFoundError
 from .modules.station import StationModule
 
 logger = logging.getLogger("pyardent.client")
@@ -24,6 +25,8 @@ def _handle_response_errors(response: httpx.Response):
                     raise CommodityNotFoundError(str(response.url)) from e
                 elif "system" in api_msg.lower():
                     raise SystemNotFoundError(str(response.url)) from e
+                elif "service" in api_msg.lower():
+                    raise ServiceNotFoundError(str(response.url)) from e
                 else:
                     raise PyArdentError(api_msg) from e
             raise ResourceNotFoundError(str(response.url)) from e

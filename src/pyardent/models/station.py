@@ -6,6 +6,8 @@ import httpx
 from pydantic import BaseModel, Field, ConfigDict, PrivateAttr, model_validator
 from pydantic.alias_generators import to_camel
 
+from ..types import LandingPad
+
 if TYPE_CHECKING:
     from .system import System
 
@@ -52,7 +54,7 @@ class StationData(BaseModel):
     services: StationServices | None = None
     location: StationLocation | None = None
 
-    max_landing_pad_size: int | None = None
+    max_landing_pad_size: LandingPad | None = None
     allegiance: str | None = None
     government: str | None = None
     controlling_faction: str | None = None

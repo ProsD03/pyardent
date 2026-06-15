@@ -6,6 +6,8 @@ import httpx
 from pydantic import BaseModel, PrivateAttr, ConfigDict
 from pydantic.alias_generators import to_camel
 
+from ..types import StationServices, LandingPad
+
 if TYPE_CHECKING:
     from .station import Station
 
@@ -53,3 +55,18 @@ class System(SystemData):
             for system in systems
             if not hide_debug_system or system.get("systemName") != "TestRender"
         ]
+
+    def get_nearest_service(self, service: StationServices, min_landing_pad_size: LandingPad | None = None) -> list["Station"]:
+        from .station import Station
+
+        if min_landing_pad_size:
+            params = {
+            "minLandingPadSize": min_landing_pad_size.value,
+            }
+        else:
+            params = {}
+
+        logger.debug(f"GET /system/address/{self.system_address}/nearest/{service.value}")
+        response = self._client.get(f"/system/address/{self.system_address}/nearest/{service.value}", params=params)
+        stations = response.json()
+        return [Station.from_json(self._client, station) for station in stations]
