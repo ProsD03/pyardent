@@ -1,8 +1,8 @@
 import logging
 
 import httpx
-from .modules import MetaModule, CommodityModule
-from .exceptions import PyArdentError, ResourceNotFoundError, CommodityNotFoundError
+from .modules import MetaModule, CommodityModule, SystemModule
+from .exceptions import PyArdentError, ResourceNotFoundError, CommodityNotFoundError, SystemNotFoundError
 
 logger = logging.getLogger("pyardent.client")
 
@@ -21,6 +21,8 @@ def _handle_response_errors(response: httpx.Response):
             if api_msg:
                 if "commodity" in api_msg.lower():
                     raise CommodityNotFoundError(str(response.url)) from e
+                elif "system" in api_msg.lower():
+                    raise SystemNotFoundError(str(response.url)) from e
                 else:
                     raise PyArdentError(api_msg) from e
             raise ResourceNotFoundError(str(response.url)) from e
@@ -37,6 +39,7 @@ class ArdentClient:
 
     meta: MetaModule
     commodity: CommodityModule
+    system: SystemModule
 
     def __init__(self, base_url: str | None = None):
         self._base_url = base_url or self.DEFAULT_BASE_URL
@@ -44,5 +47,6 @@ class ArdentClient:
         self._client = httpx.Client(base_url=self._base_url, event_hooks={"response": [_handle_response_errors, ]})
         self.meta = MetaModule(self._client)
         self.commodity = CommodityModule(self._client)
+        self.system = SystemModule(self._client)
 
         logger.info(f"Initialized ArdentClient pointing to {self._base_url}")

@@ -10,3 +10,7 @@ class ResourceNotFoundError(PyArdentError):
 class CommodityNotFoundError(PyArdentError):
     def __init__(self, url: str):
         super().__init__(f"Commodity does not exist. Endpoint: {url}")
+
+class SystemNotFoundError(PyArdentError):
+    def __init__(self, url: str):
+        super().__init__(f"System does not exist. Endpoint: {url}")
