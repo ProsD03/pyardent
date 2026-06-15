@@ -68,6 +68,7 @@ class Commodity(CommodityData):
             "maxDaysAgo": max_days_ago,
         })
         importers = response.json()
+        logger.debug(f"Parsing {len(importers)} importers")
         return [CommodityMarket.from_json(self._client, importer) for importer in importers]
 
     def get_exporters(self, min_volume: int = 1, max_price: int | None = None, fleet_carriers: bool | None = None, max_days_ago: int = 30) -> list["CommodityMarket"]:
@@ -95,4 +96,5 @@ class Commodity(CommodityData):
             }
         response = self._client.get(f"/commodity/name/{self.commodity_name}/exports", params=params)
         exporters = response.json()
+        logger.debug(f"Parsing {len(exporters)} exporters")
         return [CommodityMarket.from_json(self._client, exporter) for exporter in exporters]

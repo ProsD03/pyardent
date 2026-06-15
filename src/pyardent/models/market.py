@@ -14,17 +14,17 @@ logger = logging.getLogger("pyardent.models.market")
 class CommodityMarketData(BaseModel):
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
-    commodity_name: str
-    buy_price: int
-    demand: int
-    demand_bracket: int | str
-    mean_price: int
-    sell_price: int
-    stock: int
-    stock_bracket: int
-    updated_at: datetime
+    commodity_name: str | None = None
+    buy_price: int | None = None
+    demand: int | None = None
+    demand_bracket: int | str | None = None
+    mean_price: int | None = None
+    sell_price: int | None = None
+    stock: int | None = None
+    stock_bracket: int | str | None = None
+    updated_at: datetime | None = None
 
-    station_id: int = Field(alias="marketId")
+    station_id: int | None = Field(alias="marketId", default=None)
 
 class CommodityMarket(CommodityMarketData):
     _client: httpx.Client = PrivateAttr()

@@ -10,6 +10,7 @@ from ..types import StationServices, LandingPad
 
 if TYPE_CHECKING:
     from .station import Station
+    from .market import CommodityMarket
 
 logger = logging.getLogger("pyardent.models.system")
 
@@ -70,3 +71,66 @@ class System(SystemData):
         response = self._client.get(f"/system/address/{self.system_address}/nearest/{service.value}", params=params)
         stations = response.json()
         return [Station.from_json(self._client, station) for station in stations]
+
+    def get_traded_commodities(self) -> list["CommodityMarket"]:
+        from .market import CommodityMarket
+        logger.debug(f"GET /system/address/{self.system_address}/commodities")
+        response = self._client.get(f"/system/address/{self.system_address}/commodities")
+        commodities = response.json()
+        logger.debug(f"Parsing {len(commodities)} commodities")
+        return [
+            CommodityMarket.from_json(self._client, commodity) for commodity in commodities
+        ]
+
+    def get_imported_commodities(self,  min_volume: int = 1, min_price: int = 1, fleet_carriers: bool | None = None, max_days_ago: int = 30) -> list["CommodityMarket"]:
+        if min_volume < 0:
+            raise ValueError(f"min_volume cannot be negative. received: {min_volume}")
+        if min_price < 0:
+            raise ValueError(f"min_price cannot be negative. received: {min_price}")
+        if max_days_ago < 0:
+            raise ValueError(f"max_days_ago cannot be negative. received: {max_days_ago}")
+
+
+        from .market import CommodityMarket
+        logger.debug(f"GET /system/address/{self.system_address}/commodities/imports")
+        response = self._client.get(f"/system/address/{self.system_address}/commodities/imports", params={
+            "minVolume": min_volume,
+            "minPrice": min_price,
+            "fleetCarriers": fleet_carriers,
+            "maxDaysAgo": max_days_ago,
+        })
+        commodities = response.json()
+        logger.debug(f"Parsing {len(commodities)} commodities")
+        return [
+            CommodityMarket.from_json(self._client, commodity) for commodity in commodities
+        ]
+
+    def get_exported_commodities(self, min_volume: int = 1, max_price: int | None = None, fleet_carriers: bool | None = None, max_days_ago: int = 30) -> list["CommodityMarket"]:
+        if min_volume < 0:
+            raise ValueError(f"min_volume cannot be negative. received: {min_volume}")
+        if max_price and max_price < 0:
+            raise ValueError(f"max_price cannot be negative. received: {max_price}")
+        if max_days_ago < 0:
+            raise ValueError(f"max_days_ago cannot be negative. received: {max_days_ago}")
+
+        from .market import CommodityMarket
+        logger.debug(f"GET /system/address/{self.system_address}/commodities/exports")
+        if max_price is None:
+            params = {
+            "minVolume": min_volume,
+            "fleetCarriers": fleet_carriers,
+            "maxDaysAgo": max_days_ago,
+        }
+        else:
+            params = {
+                "minVolume": min_volume,
+                "max_price": max_price,
+                "fleetCarriers": fleet_carriers,
+                "maxDaysAgo": max_days_ago,
+            }
+        response = self._client.get(f"/system/address/{self.system_address}/commodities/exports", params=params)
+        commodities = response.json()
+        logger.debug(f"Parsing {len(commodities)} commodities")
+        return [
+            CommodityMarket.from_json(self._client, commodity) for commodity in commodities
+        ]
