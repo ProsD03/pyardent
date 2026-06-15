@@ -19,9 +19,9 @@ class SystemModule:
 
         logger.debug(f"GET /system/name/{url_encoded_name}")
         response = self._client.get(f"/system/name/{url_encoded_name}")
-        return response.json()
+        return System.from_json(self._client, payload=response.json())
 
     def get_by_address(self, address: str | int) -> System:
         logger.debug(f"GET /system/address/{address}")
         response = self._client.get(f"/system/address/{address}")
-        return response.json()
+        return System.from_json(self._client, payload=response.json())
