@@ -39,3 +39,17 @@ class System(SystemData):
         stations = response.json()
         logger.debug(f"Parsing {len(stations)} stations")
         return [Station.from_json(self._client, station) for station in stations]
+
+    def get_nearby_systems(self, max_distance: int = 100, hide_debug_system: bool = True) -> list["System"]:
+        if max_distance > 500 or max_distance < 0:
+            raise ValueError(f"max_distance must be between 0 and 500. received: {max_distance}")
+
+        logger.debug(f"GET /system/address/{self.system_address}/nearby")
+        response = self._client.get(f"/system/address/{self.system_address}/nearby", params={"maxDistance": max_distance})
+        systems = response.json()
+        logger.debug(f"Parsing {len(systems)} nearby systems")
+        return [
+            System.from_json(self._client, system)
+            for system in systems
+            if not hide_debug_system or system.get("systemName") != "TestRender"
+        ]
