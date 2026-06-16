@@ -10,6 +10,8 @@ from ..types import LandingPad
 
 if TYPE_CHECKING:
     from .system import System
+    from .commodity import Commodity
+    from .market import CommodityMarket
 
 logger = logging.getLogger("pyardent.models.station")
 
@@ -112,3 +114,11 @@ class Station(StationData):
         station = Station.from_json(self._client, station_data)
         self.__dict__.update(station.__dict__)
         return self
+
+    def get_commodity_market(self, commodity: "Commodity") -> "CommodityMarket":
+        from .market import CommodityMarket
+
+        logger.debug(f"GET /market/{self.station_id}/commodity/name/{commodity.commodity_name}")
+        response = self._client.get(f"/market/{self.station_id}/commodity/name/{commodity.commodity_name}")
+        commodity_data = response.json()
+        return CommodityMarket.from_json(self._client, commodity_data)

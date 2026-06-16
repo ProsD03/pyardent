@@ -175,3 +175,10 @@ class Commodity(CommodityData):
         return [
             CommodityMarket.from_json(self._client, entry) for entry in commodities
         ]
+
+    def get_station_market(self, station: "Station") -> "CommodityMarket":
+        from .market import CommodityMarket
+        logger.debug(f"GET /market/{station.station_id}/commodty/name/{self.commodity_name}")
+        response = self._client.get(f"/market/{station.station_id}/commodty/name/{self.commodity_name}")
+        commodity = response.json()
+        return CommodityMarket.from_json(self._client, commodity)
