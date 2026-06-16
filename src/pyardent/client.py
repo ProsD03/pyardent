@@ -1,3 +1,10 @@
+"""Top-level client for the Ardent Insight API.
+
+Wires up an `httpx.Client` shared by all `*Module` instances and installs the
+response hook that translates HTTP error responses into `PyArdentError`
+subclasses.
+"""
+
 import logging
 
 import httpx
@@ -10,6 +17,23 @@ logger = logging.getLogger("pyardent.client")
 
 
 def _handle_response_errors(response: httpx.Response):
+    """Translate failed HTTP responses into `PyArdentError` subclasses.
+
+    Registered as an `httpx.Client` "response" event hook, so it runs on
+    every request made through `ArdentClient`. Successful responses pass
+    through unchanged.
+
+    Args:
+        response: The `httpx.Response` returned by the underlying request.
+
+    Raises:
+        CommodityNotFoundError: On a 404 whose API error message mentions a commodity.
+        SystemNotFoundError: On a 404 whose API error message mentions a system.
+        ServiceNotFoundError: On a 404 whose API error message mentions a service.
+        ResourceNotFoundError: On a 404 with no recognizable error message.
+        PyArdentError: On any other HTTP error status, a 404 with an
+            unrecognized message, or a network-level error.
+    """
     response.read()
     try:
         response.raise_for_status()
@@ -38,6 +62,15 @@ def _handle_response_errors(response: httpx.Response):
 
 
 class ArdentClient:
+    """Entry point for the Ardent Insight API client.
+
+    Holds the shared `httpx.Client` and exposes one module per API resource
+    area (`meta`, `commodity`, `system`, `station`). Methods on those modules
+    return rich pydantic models (e.g. `System`, `Station`, `Commodity`,
+    `CommodityMarket`) that carry a reference back to this client so they can
+    make further API calls themselves (e.g. `system.get_stations()`).
+    """
+
     DEFAULT_BASE_URL = "https://api.ardent-insight.com/v2"
     _client: httpx.Client
 
@@ -47,6 +80,12 @@ class ArdentClient:
     station: StationModule
 
     def __init__(self, base_url: str | None = None):
+        """Create a client and its underlying HTTP session.
+
+        Args:
+            base_url: Override for the API base URL. Defaults to
+                `ArdentClient.DEFAULT_BASE_URL` when omitted.
+        """
         self._base_url = base_url or self.DEFAULT_BASE_URL
 
         self._client = httpx.Client(base_url=self._base_url, event_hooks={"response": [_handle_response_errors, ]})

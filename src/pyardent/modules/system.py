@@ -1,3 +1,5 @@
+"""Entry point for the API's system resource (`/system/...`, `/search/system/...`)."""
+
 import logging
 from urllib.parse import unquote, quote
 
@@ -8,12 +10,29 @@ from ..models import System
 logger = logging.getLogger("pyardent.modules.system")
 
 class SystemModule:
+    """Attached as `ArdentClient.system`. Looks up systems to start traversing from."""
+
     _client: httpx.Client
 
     def __init__(self, client: httpx.Client):
         self._client = client
 
     def get_by_name(self, name: str) -> System:
+        """Fetch one system by its exact name.
+
+        Some system names aren't unique; if so, the result's
+        `disambiguation` field is populated with the other matches.
+
+        Args:
+            name: The system name. Case-insensitive.
+
+        Returns:
+            The matching `System`.
+
+        Raises:
+            ValueError: If `name` is empty after normalization.
+            SystemNotFoundError: If no system matches.
+        """
         normalized_name = unquote(name).lower().strip()
         if not normalized_name:
             raise ValueError("name cannot be empty")
@@ -24,6 +43,20 @@ class SystemModule:
         return System.from_json(self._client, payload=response.json())
 
     def search_by_name(self, name: str) -> list[System]:
+        """Search for systems whose name starts with the given text.
+
+        This is a prefix search (suitable for autocomplete), not an exact
+        match — unlike `get_by_name`, which returns a single exact result.
+
+        Args:
+            name: The name prefix to search for. Case-insensitive.
+
+        Returns:
+            Up to 25 matching systems.
+
+        Raises:
+            ValueError: If `name` is empty after normalization.
+        """
         normalized_name = unquote(name).lower().strip()
         if not normalized_name:
             raise ValueError("name cannot be empty")
@@ -36,6 +69,21 @@ class SystemModule:
         return [System.from_json(self._client, system) for system in systems]
 
     def get_by_address(self, address: str | int) -> System:
+        """Fetch one system by its unique system address.
+
+        Unlike a system name, an address is always unambiguous — useful
+        when disambiguating a name that has multiple matches.
+
+        Args:
+            address: The system address.
+
+        Returns:
+            The matching `System`.
+
+        Raises:
+            ValueError: If `address` is empty, or negative when given as an int.
+            SystemNotFoundError: If no system matches.
+        """
         normalized_address = str(address).strip()
         if not normalized_address:
             raise ValueError("address cannot be empty")
