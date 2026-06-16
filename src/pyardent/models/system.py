@@ -11,6 +11,7 @@ from ..types import StationServices, LandingPad
 if TYPE_CHECKING:
     from .station import Station
     from .market import CommodityMarket
+    from .commodity import Commodity
 
 logger = logging.getLogger("pyardent.models.system")
 
@@ -133,4 +134,19 @@ class System(SystemData):
         logger.debug(f"Parsing {len(commodities)} commodities")
         return [
             CommodityMarket.from_json(self._client, commodity) for commodity in commodities
+        ]
+
+    def get_commodity_market(self, commodity: "Commodity", max_days_ago: int = 30) -> list["CommodityMarket"]:
+        if max_days_ago < 0:
+            raise ValueError(f"max_days_ago cannot be negative. received: {max_days_ago}")
+
+        from .market import CommodityMarket
+        logger.debug(f"GET /system/address/{self.system_address}/commodity/name/{commodity.commodity_name}")
+        response = self._client.get(f"/system/address/{self.system_address}/commodity/name/{commodity.commodity_name}", params={
+            "maxDaysAgo": max_days_ago,
+        })
+        commodities = response.json()
+        logger.debug(f"Parsing {len(commodities)} commodities")
+        return [
+            CommodityMarket.from_json(self._client, entry) for entry in commodities
         ]

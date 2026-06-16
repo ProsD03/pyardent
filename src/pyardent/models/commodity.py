@@ -9,6 +9,7 @@ from pydantic.alias_generators import to_camel
 if TYPE_CHECKING:
     from .station import Station
     from .market import CommodityMarket
+    from .system import System
 
 logger = logging.getLogger("pyardent.models.commodity")
 
@@ -96,3 +97,18 @@ class Commodity(CommodityData):
         exporters = response.json()
         logger.debug(f"Parsing {len(exporters)} exporters")
         return [CommodityMarket.from_json(self._client, exporter) for exporter in exporters]
+
+    def get_system_market(self, system: "System", max_days_ago: int = 30) -> list["CommodityMarket"]:
+        if max_days_ago < 0:
+            raise ValueError(f"max_days_ago cannot be negative. received: {max_days_ago}")
+
+        from .market import CommodityMarket
+        logger.debug(f"GET /system/address/{system.system_address}/commodity/name/{self.commodity_name}")
+        response = self._client.get(f"/system/address/{system.system_address}/commodity/name/{self.commodity_name}", params={
+            "maxDaysAgo": max_days_ago,
+        })
+        commodities = response.json()
+        logger.debug(f"Parsing {len(commodities)} commodities")
+        return [
+            CommodityMarket.from_json(self._client, entry) for entry in commodities
+        ]
