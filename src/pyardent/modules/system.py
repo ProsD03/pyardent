@@ -23,7 +23,7 @@ class SystemModule:
         response = self._client.get(f"/system/name/{url_encoded_name}")
         return System.from_json(self._client, payload=response.json())
 
-    def get_by_ambiguous_name(self, name: str) -> list[System]:
+    def search_by_name(self, name: str) -> list[System]:
         normalized_name = unquote(name).lower().strip()
         if not normalized_name:
             raise ValueError("name cannot be empty")

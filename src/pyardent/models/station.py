@@ -122,3 +122,12 @@ class Station(StationData):
         response = self._client.get(f"/market/{self.station_id}/commodity/name/{commodity.commodity_name}")
         commodity_data = response.json()
         return CommodityMarket.from_json(self._client, commodity_data)
+
+    def get_traded_commodities(self) -> list["CommodityMarket"]:
+        from .market import CommodityMarket
+
+        logger.debug(f"GET /market/{self.station_id}/commodities")
+        response = self._client.get(f"/market/{self.station_id}/commodities")
+        commodities = response.json()
+        logger.debug(f"Parsing {len(commodities)} commodities")
+        return [CommodityMarket.from_json(self._client, entry) for entry in commodities]

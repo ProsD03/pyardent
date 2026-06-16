@@ -1,5 +1,5 @@
 import logging
-from urllib.parse import quote
+from urllib.parse import quote, unquote
 
 import httpx
 
@@ -25,3 +25,15 @@ class StationModule:
         response = self._client.get(f"/market/{url_encoded_id}")
         station_data = response.json()
         return Station.from_json(self._client, station_data)
+
+    def search_by_name(self, name: str) -> list[Station]:
+        normalized_name = unquote(name).lower().strip()
+        if not normalized_name:
+            raise ValueError("name cannot be empty")
+        url_encoded_name = quote(normalized_name, safe='')
+
+        logger.debug(f"GET /search/station/name/{url_encoded_name}")
+        response = self._client.get(f"/search/station/name/{url_encoded_name}")
+        stations = response.json()
+        logger.debug(f"Parsing {len(stations)} matching stations")
+        return [Station.from_json(self._client, station) for station in stations]
