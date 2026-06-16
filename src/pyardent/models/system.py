@@ -150,3 +150,64 @@ class System(SystemData):
         return [
             CommodityMarket.from_json(self._client, entry) for entry in commodities
         ]
+
+    def get_nearby_importers(self, commodity: "Commodity", min_volume: int = 1, min_price: int = 1, fleet_carriers: bool | None = None, max_distance: int = 100, max_days_ago: int = 30) -> list["CommodityMarket"]:
+        if min_volume < 0:
+            raise ValueError(f"min_volume cannot be negative. received: {min_volume}")
+        if min_price < 0:
+            raise ValueError(f"min_price cannot be negative. received: {min_price}")
+        if max_distance < 0 or max_distance > 500:
+            raise ValueError(f"max_distance cannot be negative or greater than 500. received: {max_distance}")
+        if max_days_ago < 0:
+            raise ValueError(f"max_days_ago cannot be negative. received: {max_days_ago}")
+
+        from .market import CommodityMarket
+        logger.debug(f"GET /system/address/{self.system_address}/commodity/name/{commodity.commodity_name}/nearby/imports")
+        response = self._client.get(f"/system/address/{self.system_address}/commodity/name/{commodity.commodity_name}/nearby/imports",
+                                    params={
+                                        "minVolume": min_volume,
+                                        "minPrice": min_price,
+                                        "fleetCarriers": fleet_carriers,
+                                        "maxDistance": max_distance,
+                                        "maxDaysAgo": max_days_ago,
+                                    })
+        commodities = response.json()
+        logger.debug(f"Parsing {len(commodities)} commodities")
+        return [
+            CommodityMarket.from_json(self._client, entry) for entry in commodities
+        ]
+
+    def get_nearby_exporters(self, commodity: "Commodity", min_volume: int = 1, max_price: int | None = None, fleet_carriers: bool | None = None, max_distance: int = 100, max_days_ago: int = 30) -> list["CommodityMarket"]:
+        if min_volume < 0:
+            raise ValueError(f"min_volume cannot be negative. received: {min_volume}")
+        if max_price and max_price < 0:
+            raise ValueError(f"max_price cannot be negative. received: {max_price}")
+        if max_distance < 0 or max_distance > 500:
+            raise ValueError(f"max_distance cannot be negative or greater than 500. received: {max_distance}")
+        if max_days_ago < 0:
+            raise ValueError(f"max_days_ago cannot be negative. received: {max_days_ago}")
+
+        from .market import CommodityMarket
+        logger.debug(f"GET /system/address/{self.system_address}/commodity/name/{commodity.commodity_name}/nearby/exports")
+        if max_price is None:
+            params = {
+                "minVolume": min_volume,
+                "fleetCarriers": fleet_carriers,
+                "maxDaysAgo": max_days_ago,
+            }
+        else:
+            params = {
+                "minVolume": min_volume,
+                "maxPrice": max_price,
+                "fleetCarriers": fleet_carriers,
+                "maxDaysAgo": max_days_ago,
+            }
+
+        response = self._client.get(
+            f"/system/address/{self.system_address}/commodity/name/{commodity.commodity_name}/nearby/exports",
+            params=params)
+        commodities = response.json()
+        logger.debug(f"Parsing {len(commodities)} commodities")
+        return [
+            CommodityMarket.from_json(self._client, entry) for entry in commodities
+        ]
