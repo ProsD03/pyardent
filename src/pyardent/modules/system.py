@@ -14,7 +14,7 @@ class SystemModule:
         self._client = client
 
     def get_by_name(self, name: str) -> System:
-        normalized_name = unquote(name).lower().strip().replace(" ", "")
+        normalized_name = unquote(name).lower().strip()
         if not normalized_name:
             raise ValueError("name cannot be empty")
         url_encoded_name = quote(normalized_name, safe='')
@@ -22,6 +22,18 @@ class SystemModule:
         logger.debug(f"GET /system/name/{url_encoded_name}")
         response = self._client.get(f"/system/name/{url_encoded_name}")
         return System.from_json(self._client, payload=response.json())
+
+    def get_by_ambiguous_name(self, name: str) -> list[System]:
+        normalized_name = unquote(name).lower().strip()
+        if not normalized_name:
+            raise ValueError("name cannot be empty")
+        url_encoded_name = quote(normalized_name, safe='')
+
+        logger.debug(f"GET /search/system/name/{url_encoded_name}")
+        response = self._client.get(f"/search/system/name/{url_encoded_name}")
+        systems = response.json()
+        logger.debug(f"Parsing {len(systems)} matching systems")
+        return [System.from_json(self._client, system) for system in systems]
 
     def get_by_address(self, address: str | int) -> System:
         normalized_address = str(address).strip()

@@ -25,6 +25,7 @@ class SystemData(BaseModel):
     system_z: float
     system_sector: str
     updated_at: datetime
+    disambiguation: list["System"] | None = None
 
 class System(SystemData):
     _client: httpx.Client = PrivateAttr()
@@ -33,13 +34,20 @@ class System(SystemData):
     def from_json(cls, client: httpx.Client, payload: dict) -> "System":
         instance = cls.model_validate(payload)
         instance._client = client
+        if instance.disambiguation:
+            for candidate in instance.disambiguation:
+                candidate._client = client
+            logger.warning(
+                f"System name '{instance.system_name}' is ambiguous: "
+                f"{len(instance.disambiguation)} other system(s) share this name"
+            )
         return instance
 
     def get_stations(self) -> list["Station"]:
         from .station import Station
 
-        logger.debug(f"GET /system/address/{self.system_address}/markets")
-        response = self._client.get(f"/system/address/{self.system_address}/markets")
+        logger.debug(f"GET /system/address/{self.system_address}/stations")
+        response = self._client.get(f"/system/address/{self.system_address}/stations")
         stations = response.json()
         logger.debug(f"Parsing {len(stations)} stations")
         return [Station.from_json(self._client, station) for station in stations]
