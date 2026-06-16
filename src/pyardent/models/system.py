@@ -124,7 +124,7 @@ class System(SystemData):
         else:
             params = {
                 "minVolume": min_volume,
-                "max_price": max_price,
+                "maxPrice": max_price,
                 "fleetCarriers": fleet_carriers,
                 "maxDaysAgo": max_days_ago,
             }

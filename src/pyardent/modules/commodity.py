@@ -26,6 +26,8 @@ class CommodityModule:
 
     def get_by_name(self, name: str) -> Commodity:
         normalized_name = unquote(name).lower().strip().replace(" ", "")
+        if not normalized_name:
+            raise ValueError("name cannot be empty")
 
         if normalized_name in self._ALIASES:
             logger.debug(f"Alias found: {normalized_name} -> {self._ALIASES[normalized_name]}")

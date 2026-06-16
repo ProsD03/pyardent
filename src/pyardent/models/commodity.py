@@ -6,8 +6,6 @@ import httpx
 from pydantic import BaseModel, ConfigDict, PrivateAttr, Field
 from pydantic.alias_generators import to_camel
 
-from pyardent.models.market import CommodityMarket
-
 if TYPE_CHECKING:
     from .station import Station
     from .market import CommodityMarket
@@ -47,8 +45,8 @@ class Commodity(CommodityData):
         from .station import Station
         logger.debug(f"GET /market/{self.rare_station_id}")
         response = self._client.get(f"/market/{self.rare_station_id}")
-        system = response.json()
-        return Station.from_json(self._client, system)
+        station = response.json()
+        return Station.from_json(self._client, station)
 
     def get_importers(self, min_volume: int = 1, min_price: int = 1, fleet_carriers: bool | None = None, max_days_ago: int = 30) -> list["CommodityMarket"]:
         if min_volume < 0:
@@ -90,7 +88,7 @@ class Commodity(CommodityData):
         else:
             params = {
                 "minVolume": min_volume,
-                "max_price": max_price,
+                "maxPrice": max_price,
                 "fleetCarriers": fleet_carriers,
                 "maxDaysAgo": max_days_ago,
             }

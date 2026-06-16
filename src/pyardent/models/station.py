@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger("pyardent.models.station")
 
-class StationServices(BaseModel):
+class StationServiceFlags(BaseModel):
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
     shipyard: bool | None = None
@@ -51,7 +51,7 @@ class StationData(BaseModel):
     primary_economy: str | None = None
     secondary_economy: str | None = None
 
-    services: StationServices | None = None
+    services: StationServiceFlags | None = None
     location: StationLocation | None = None
 
     max_landing_pad_size: LandingPad | None = None
@@ -103,7 +103,7 @@ class Station(StationData):
         return System.from_json(self._client, system)
 
     def get_full_details(self) -> "Station":
-        if self.location and self.location.body_id:
+        if self.location and self.location.body_id is not None:
             return self
 
         logger.debug(f"GET /market/{self.station_id}")

@@ -39,5 +39,5 @@ class CommodityMarket(CommodityMarketData):
         from .station import Station
         logger.debug(f"GET /market/{self.station_id}")
         response = self._client.get(f"/market/{self.station_id}")
-        system = response.json()
-        return Station.from_json(self._client, system)
+        station = response.json()
+        return Station.from_json(self._client, station)
