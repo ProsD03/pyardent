@@ -56,9 +56,6 @@ def _handle_response_errors(response: httpx.Response):
             raise ResourceNotFoundError(str(response.url)) from e
         else:
             raise PyArdentError(f"HTTP error {e.response.status_code} for URL: {response.url}") from e
-    except httpx.RequestError as e:
-        logger.error(f"Network error while connecting to {e.request.url}: {e}")
-        raise PyArdentError(f"Network error: {str(e)}") from e
 
 
 class ArdentClient:
