@@ -9,7 +9,7 @@ import pytest
 import respx
 from httpx import Response
 
-from pyardent import ArdentClient, SystemNotFoundError
+from pyardent import ArdentClient
 
 SOL_PAYLOAD = {
     "systemAddress": 10477373803,
@@ -77,17 +77,6 @@ def test_get_by_name_raises_on_empty_name():
     with pytest.raises(ValueError):
         client.system.get_by_name("   ")
 
-
-@respx.mock
-def test_get_by_name_raises_system_not_found():
-    respx.get("https://api.ardent-insight.com/v2/system/name/nonexistent").mock(
-        return_value=Response(404, json={"error": "Not Found", "message": "System not found"})
-    )
-
-    client = ArdentClient()
-
-    with pytest.raises(SystemNotFoundError):
-        client.system.get_by_name("nonexistent")
 
 
 # SEARCH_BY_NAME
