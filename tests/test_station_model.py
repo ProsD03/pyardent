@@ -61,7 +61,7 @@ MARKET_ENTRY = {
 @respx.mock
 def test_get_system_returns_system():
     client = ArdentClient()
-    station = Station.from_json(client._client, dict(FULL_STATION))
+    station = Station.from_json(client._client, FULL_STATION)
 
     respx.get("https://api.ardent-insight.com/v2/system/address/8216113749").mock(
         return_value=Response(200, json=SYSTEM_PAYLOAD)
@@ -76,7 +76,7 @@ def test_get_system_returns_system():
 @respx.mock
 def test_get_full_details_skips_request_when_already_detailed():
     client = ArdentClient()
-    station = Station.from_json(client._client, dict(FULL_STATION))
+    station = Station.from_json(client._client, FULL_STATION)
 
     # No route registered for GET /market/{id} - if get_full_details tried
     # to call it, respx would raise since this test is @respx.mock'd.
@@ -90,7 +90,7 @@ def test_get_full_details_skips_request_when_already_detailed():
 @respx.mock
 def test_get_full_details_fetches_when_sparse():
     client = ArdentClient()
-    station = Station.from_json(client._client, dict(SPARSE_STATION))
+    station = Station.from_json(client._client, SPARSE_STATION)
     assert station.location is not None
     assert station.location.body_id is None
 
@@ -109,7 +109,7 @@ def test_get_full_details_fetches_when_sparse():
 @respx.mock
 def test_get_commodity_market_returns_commodity_market():
     client = ArdentClient()
-    station = Station.from_json(client._client, dict(FULL_STATION))
+    station = Station.from_json(client._client, FULL_STATION)
     commodity = Commodity.from_json(client._client, GOLD)
 
     respx.get("https://api.ardent-insight.com/v2/market/128672445/commodity/name/gold").mock(
@@ -125,7 +125,7 @@ def test_get_commodity_market_returns_commodity_market():
 @respx.mock
 def test_get_traded_commodities_returns_commodity_markets():
     client = ArdentClient()
-    station = Station.from_json(client._client, dict(FULL_STATION))
+    station = Station.from_json(client._client, FULL_STATION)
 
     respx.get("https://api.ardent-insight.com/v2/market/128672445/commodities").mock(
         return_value=Response(200, json=[MARKET_ENTRY])

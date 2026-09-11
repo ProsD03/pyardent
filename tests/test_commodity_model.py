@@ -79,7 +79,7 @@ def _commodity_and_system() -> tuple[Commodity, System]:
 def _commodity_and_station() -> tuple[Commodity, Station]:
     client = ArdentClient()
     commodity = Commodity.from_json(client._client, GOLD)
-    station = Station.from_json(client._client, dict(STATION_PAYLOAD))
+    station = Station.from_json(client._client, STATION_PAYLOAD)
     return commodity, station
 
 

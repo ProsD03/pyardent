@@ -102,11 +102,13 @@ class StationData(BaseModel):
             data: The raw payload, or an already-validated `Station`/dict.
 
         Returns:
-            `data` unchanged if it isn't a dict, otherwise `data` with the
-            service/location keys moved under `services`/`location`.
+            `data` unchanged if it isn't a dict, otherwise a copy of `data`
+            with the service/location keys moved under `services`/`location`.
         """
         if not isinstance(data, dict):
             return data
+
+        data = dict(data)
 
         service_keys = [
             "shipyard", "outfitting", "blackMarket", "contacts", "crewLounge",
