@@ -6,6 +6,8 @@ real httpx.Client never touches the network during these tests - we control
 exactly what the "API" returns.
 """
 
+import logging
+
 import pytest
 import respx
 from httpx import Response
@@ -64,6 +66,27 @@ MARKET_ENTRY = {
     "updatedAt": "2026-06-16T08:33:50.000Z",
 }
 
+AMBIGUOUS_PAYLOAD = {
+    "systemAddress": 84389401298,
+    "systemName": "c Velorum",
+    "systemX": 299.40625,
+    "systemY": -0.3125,
+    "systemZ": -7.625,
+    "systemSector": "b54462392f48b156",
+    "updatedAt": "2022-08-17T09:45:34.000Z",
+    "disambiguation": [
+        {
+            "systemAddress": 85261750986,
+            "systemName": "C Velorum",
+            "systemX": 844.5625,
+            "systemY": -83.1875,
+            "systemZ": -35.15625,
+            "systemSector": "41087a2dd2d7d0b4",
+            "updatedAt": "2022-11-26T00:18:27.000Z",
+        }
+    ],
+}
+
 
 def _system() -> System:
     client = ArdentClient()
@@ -75,6 +98,30 @@ def _system_and_commodity() -> tuple[System, Commodity]:
     system = System.from_json(client._client, SOL_PAYLOAD)
     commodity = Commodity.from_json(client._client, GOLD)
     return system, commodity
+
+
+# FROM_JSON
+
+def test_from_json_attaches_client_to_disambiguation_candidates(caplog):
+    client = ArdentClient()
+
+    with caplog.at_level(logging.WARNING, logger="pyardent.models.system"):
+        system = System.from_json(client._client, AMBIGUOUS_PAYLOAD)
+
+    assert system.disambiguation is not None
+    assert len(system.disambiguation) == 1
+
+    candidate = system.disambiguation[0]
+    assert candidate.system_name == "C Velorum"
+    assert candidate._client is client._client
+
+    # The candidate is itself traversable, since it carries a _client too.
+    respx_route = f"https://api.ardent-insight.com/v2/system/address/{candidate.system_address}/stations"
+    with respx.mock:
+        respx.get(respx_route).mock(return_value=Response(200, json=[]))
+        assert candidate.get_stations() == []
+
+    assert "ambiguous" in caplog.text.lower()
 
 
 # GET_STATIONS

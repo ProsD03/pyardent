@@ -58,6 +58,18 @@ MARKET_ENTRY = {
 }
 
 
+# EXPLODE_FLAT_DATA
+
+def test_explode_flat_data_passes_through_non_dict_payload():
+    # By default pydantic skips "before" validators entirely when
+    # re-validating an already-constructed instance of the same class
+    # (`revalidate_instances="never"`), so the `not isinstance(data, dict)`
+    # branch can't be reached via `Station.model_validate` - it only fires
+    # for non-dict, non-Station inputs. Exercise the validator directly.
+    assert Station.explode_flat_data("not a dict") == "not a dict"
+    assert Station.explode_flat_data(42) == 42
+
+
 @respx.mock
 def test_get_system_returns_system():
     client = ArdentClient()
