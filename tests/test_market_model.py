@@ -1,4 +1,5 @@
-"""Tests for CommodityMarket's traversal method (`get_station`).
+"""Tests for CommodityMarket's traversal method (`get_station`) and
+CommodityMarketData's bracket field quirks.
 
 respx intercepts HTTP requests at the transport level, so ArdentClient's
 real httpx.Client never touches the network during these tests - we control
@@ -44,3 +45,22 @@ def test_get_station_returns_station():
 
     assert station.station_id == 128672445
     assert station.station_name == "Obsidian Orbital"
+
+
+# DEMAND_BRACKET / STOCK_BRACKET
+
+def test_brackets_accept_ints():
+    client = ArdentClient()
+    market = CommodityMarket.from_json(client._client, MARKET_ENTRY)
+
+    assert market.demand_bracket == 0
+    assert market.stock_bracket == 3
+
+
+def test_brackets_accept_empty_string():
+    client = ArdentClient()
+    payload = dict(MARKET_ENTRY, demandBracket="", stockBracket="")
+    market = CommodityMarket.from_json(client._client, payload)
+
+    assert market.demand_bracket == ""
+    assert market.stock_bracket == ""
