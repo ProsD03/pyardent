@@ -1,5 +1,6 @@
 # pyardent
 
+[![PyPI version](https://badge.fury.io/py/pyardent.svg)](https://badge.fury.io/py/pyardent)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](pyproject.toml)
 [![Type Check](https://github.com/ProsD03/pyardent/actions/workflows/type_check.yml/badge.svg)](https://github.com/ProsD03/pyardent/actions/workflows/type_check.yml)
