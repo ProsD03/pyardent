@@ -3,6 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](pyproject.toml)
 [![Type Check](https://github.com/ProsD03/pyardent/actions/workflows/type_check.yml/badge.svg)](https://github.com/ProsD03/pyardent/actions/workflows/type_check.yml)
+[![Coverage badge](https://raw.githubusercontent.com/ProsD03/pyardent/python-coverage-comment-action-data/badge.svg)](https://github.com/ProsD03/pyardent/tree/python-coverage-comment-action-data)
 
 A Python client for the [Ardent Insight](https://ardent-insight.com) API: trade and system data for Elite Dangerous.
 

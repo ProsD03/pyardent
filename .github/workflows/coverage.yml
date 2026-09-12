@@ -1,0 +1,32 @@
+name: Test Coverage
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  test_coverage:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write # publish/update the coverage comment on trusted PRs
+      contents: write # push the coverage data to the python-coverage-comment-action-data branch
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v10.1.0
+        with:
+          enable-cache: 'true'
+      - run: uv sync
+      - run: uv run pytest --cov=src/pyardent --cov-report=term-missing
+      - name: Coverage comment
+        uses: py-cov-action/python-coverage-comment-action@v4.3
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
