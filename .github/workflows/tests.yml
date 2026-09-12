@@ -36,7 +36,42 @@ jobs:
         if: always()
         run: |
           mkdir -p badge
-          uvx --from 'genbadge[tests]' genbadge tests -i reports/junit/junit.xml -o badge/tests-badge.svg
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          from urllib.parse import quote
+          from urllib.request import Request, urlopen
+
+          root = ET.parse("reports/junit/junit.xml").getroot()
+          tests = failures = errors = skipped = 0
+          for suite in root.findall(".//testsuite"):
+              tests += int(suite.get("tests", 0))
+              failures += int(suite.get("failures", 0))
+              errors += int(suite.get("errors", 0))
+              skipped += int(suite.get("skipped", 0))
+
+          passed = tests - failures - errors - skipped
+          total = tests - skipped
+          pct = (passed / total * 100) if total else 100
+
+          if pct < 50:
+              color = "red"
+          elif pct < 75:
+              color = "orange"
+          elif pct < 90:
+              color = "green"
+          else:
+              color = "brightgreen"
+
+          url = "https://img.shields.io/badge/{}-{}-{}.svg".format(
+              quote("Tests", safe=""),
+              quote(f"{passed}/{total}", safe=""),
+              quote(color, safe=""),
+          )
+
+          req = Request(url, headers={"User-Agent": "pyardent-ci"})
+          with urlopen(req) as resp, open("badge/tests-badge.svg", "wb") as f:
+              f.write(resp.read())
+          PY
       - name: Publish tests badge
         if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
