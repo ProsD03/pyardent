@@ -1,0 +1,47 @@
+name: Tests
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    permissions:
+      # Only used by the "Publish tests badge" step below, and only on push
+      # to main. Forked pull_request runs are downgraded to read-only by
+      # GitHub regardless, so this does not grant write access to untrusted
+      # code.
+      contents: write # push the tests badge to the tests-badge-data branch
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v10.1.0
+        with:
+          enable-cache: 'true'
+      - run: uv sync
+      - name: Run tests
+        run: |
+          mkdir -p reports/junit
+          uv run pytest --junitxml=reports/junit/junit.xml
+      - name: Generate tests badge
+        if: always()
+        run: |
+          mkdir -p badge
+          uvx --from 'genbadge[tests]' genbadge tests -i reports/junit/junit.xml -o badge/tests-badge.svg
+      - name: Publish tests badge
+        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
+        with:
+          github_token: ${{ github.token }}
+          publish_branch: tests-badge-data
+          publish_dir: badge
+          force_orphan: true
