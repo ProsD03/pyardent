@@ -1,0 +1,32 @@
+name: Post coverage comment
+
+on: # zizmor: ignore[dangerous-triggers] we never check out the triggering workflow_run's code; we only extract and post the comment artifact it produced.
+  workflow_run:
+    workflows: ["Test Coverage"]
+    types:
+      - completed
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  post_comment:
+    name: Post coverage comment
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
+    permissions:
+      pull-requests: write # post the comment, and edit it on later runs
+      actions: read # download the comment artifact from the triggering run
+      contents: read
+    steps:
+      # DO NOT check out the triggering workflow's code here — this job runs
+      # with a privileged token, and this workflow may be triggered by a PR
+      # from an untrusted fork.
+      - name: Post comment
+        uses: py-cov-action/python-coverage-comment-action@v4.3
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_PR_RUN_ID: ${{ github.event.workflow_run.id }}

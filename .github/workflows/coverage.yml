@@ -15,6 +15,8 @@ jobs:
   test_coverage:
     runs-on: ubuntu-latest
     permissions:
+      # Forked pull_request runs are downgraded to read-only by GitHub, so
+      # these do not grant write access to untrusted code.
       pull-requests: write # publish/update the coverage comment on trusted PRs
       contents: write # push the coverage data to the python-coverage-comment-action-data branch
     steps:
@@ -27,6 +29,13 @@ jobs:
       - run: uv sync
       - run: uv run pytest --cov=src/pyardent --cov-report=term-missing
       - name: Coverage comment
+        id: coverage_comment
         uses: py-cov-action/python-coverage-comment-action@v4.3
         with:
           GITHUB_TOKEN: ${{ github.token }}
+      - name: Store Pull Request comment to be posted
+        uses: actions/upload-artifact@v7
+        if: steps.coverage_comment.outputs.COMMENT_FILE_WRITTEN == 'true'
+        with:
+          name: python-coverage-comment-action
+          path: python-coverage-comment-action.txt
